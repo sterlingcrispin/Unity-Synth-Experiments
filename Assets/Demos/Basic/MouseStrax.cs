@@ -18,11 +18,13 @@ public class MouseStrax : MonoBehaviour {
         if (Input.GetMouseButton(0))
         {
             transform.position =  Camera.main.ScreenToWorldPoint(Input.mousePosition)+new Vector3(0f,0f,20f);
-            float note_on = notes[(int)(Mathf.Floor((transform.position.x+4f) * 2f) % 8f)] + Mathf.Floor(transform.position.y+1*2) * 12f + 20f;
+
+            int noteIndex = (int)(Mathf.Floor((transform.position.x + 4f) * 2f) % 8f);
+            float note_on = notes[noteIndex] + Mathf.Floor(transform.position.y+1*2) * 12f + 20f;
 
             if (!selected)
             {
-                current = (current + 1) % 5;
+                current = (current + 1) % synths.Length;
                 synths[current].KeyOn(note_on);
                 selected = true;
             }
