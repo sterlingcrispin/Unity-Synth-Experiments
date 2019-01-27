@@ -10,6 +10,9 @@ public class AudioAgent : MonoBehaviour
     public GameObject[] agentLegs;
     public GameObject agentTail;
 
+    public float updateFrequencyInSeconds = 0.03f;
+    private float timeSinceLastUpdate = 0.0f;
+
     public float maxVelocity = 3.0f;
     /// <summary>
     /// The size of the hungry agent vision in meters used for spherecasting. 
@@ -32,7 +35,12 @@ public class AudioAgent : MonoBehaviour
     /// </summary>
     public float chanceOfAgentBeingFood = 10.0f;
 
-    private bool isAgentFood;
+    private bool _isAgentFood;
+    public bool isAgentFood {
+        get{
+            return _isAgentFood;
+        }
+    }
 
     private List<Renderer> renderers;
     private bool playingAudio = false;
@@ -62,10 +70,10 @@ public class AudioAgent : MonoBehaviour
         );
 
         // predator or prey
-        isAgentFood = Random.Range(0.0f, 100.0f) < chanceOfAgentBeingFood ? true : false;
+        _isAgentFood = Random.Range(0.0f, 100.0f) < chanceOfAgentBeingFood ? true : false;
 
         // setup agent types
-        if (isAgentFood)
+        if (_isAgentFood)
         {
             gameObject.tag = "agent-food";
             stepSpeed *= 4.0f;
@@ -131,13 +139,13 @@ public class AudioAgent : MonoBehaviour
         // look for food
         Ray visionRay = new Ray(transform.position, transform.forward);
 
-        string goalTag = isAgentFood ? "agent-hungry" : "agent-food";
+        string goalTag = _isAgentFood ? "agent-hungry" : "agent-food";
         float nearestDistance = Mathf.Infinity;
         Vector3 nearestDesiredAgentPosition = Vector3.zero;
         bool hasAgentFoundGoal = false;
 
         RaycastHit[] hits;
-        if (isAgentFood)
+        if (_isAgentFood)
         {
             hits = Physics.SphereCastAll(visionRay, foodAgentVisionSize);
         }
@@ -167,7 +175,7 @@ public class AudioAgent : MonoBehaviour
         Vector3 newLookDirection = Vector3.zero;
         if (hasAgentFoundGoal)
         {
-            if (isAgentFood)
+            if (_isAgentFood)
             {
                 // look away from the predator
                 newLookDirection = transform.position - nearestDesiredAgentPosition;
@@ -237,7 +245,7 @@ public class AudioAgent : MonoBehaviour
             playingAudio = false;
             RotateAgent(-55.0f, 55.0f);
 
-            if(isAgentFood==false){
+            if(_isAgentFood==false){
                 // make the hungry agents change color back if there's no food
                 foreach (Renderer rend in renderers)
                 {
@@ -275,7 +283,7 @@ public class AudioAgent : MonoBehaviour
             {
                 // move hungry agents faster if they found food
                 float moveBonus = 1.0f;
-                if (hasAgentFoundGoal && isAgentFood == false)
+                if (hasAgentFoundGoal && _isAgentFood == false)
                 {
                     moveBonus = 1.55f;
                 }
@@ -324,14 +332,21 @@ public class AudioAgent : MonoBehaviour
 
     }
 
+    private void FixedUpdate()
+    {
+        timeSinceLastUpdate += Time.deltaTime;
+        if (timeSinceLastUpdate > updateFrequencyInSeconds)
+        {
+            StepAgent();
+            timeSinceLastUpdate = 0.0f;
+        }
+   
+    }
+
     // Update is called once per frame
     void Update()
     {
-        StepAgent();
-        //if (Time.frameCount % 12 == 0)
-        //{
-        //    StepAgent();
-        //}
+
     }
 
 }
